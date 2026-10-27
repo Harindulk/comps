@@ -5,9 +5,9 @@ import { qloo } from '../lib/qloo.js';
 import { runAgent, runBaseline } from '../lib/agent.js';
 
 const EXAMPLES = [
-  { slug: 'drive-away', game: 'Drive Away', pitch: 'A one-thumb endless highway driving game for phones: weave through oncoming traffic, unlock cars and chase your best distance.', comps: ['Crossy Road', 'Subway Surfers', 'Traffic Rider'] },
-  { slug: 'diner-rush', game: 'Diner Rush Tycoon', pitch: 'An idle-arcade restaurant tycoon for web and phones: serve a queue of hungry customers, hire staff and unlock new diners down the street.', comps: ['Overcooked', 'Diner Dash', 'Cooking Fever'] },
-  { slug: 'the-final-room', game: 'The Final Room', pitch: 'A two-player online co-op horror game for Steam: one night, two friends, a road-trip stop that goes wrong. About two hours, $7.99.', comps: ['Phasmophobia', 'Lethal Company', 'Fears to Fathom'] },
+  { slug: 'drive-away', game: 'Drive Away', pitch: 'A one-thumb endless highway driving game for phones: weave through oncoming traffic, unlock cars and chase your best distance.', comps: ['Subway Surfers', 'Temple Run', 'Asphalt 9: Legends'] },
+  { slug: 'diner-rush', game: 'Diner Rush Tycoon', pitch: 'An idle-arcade restaurant tycoon for web and phones: serve a queue of hungry customers, hire staff and unlock new diners down the street.', comps: ['Overcooked!', 'Diner Dash', 'Cooking Mama: Cook Off'] },
+  { slug: 'the-final-room', game: 'The Final Room', pitch: 'A two-player online co-op horror game for Steam: one night, two friends, a road-trip stop that goes wrong. About two hours, $7.99.', comps: ['Phasmophobia', 'Lethal Company', 'Content Warning'] },
 ];
 
 const dir = new URL('../public/examples/', import.meta.url);
@@ -17,8 +17,8 @@ const only = process.argv[2];
 for (const ex of EXAMPLES.filter((e) => !only || e.slug === only)) {
   const comps = [];
   for (const name of ex.comps) {
-    const r = await qloo('/search', { query: name, types: 'urn:entity:videogame', take: 1 });
-    const hit = r.results?.[0];
+    const r = await qloo('/search', { query: name, types: 'urn:entity:videogame', take: 5 });
+    const hit = r.results?.find((e) => e.name.toLowerCase() === name.toLowerCase()) || r.results?.[0];
     if (hit) comps.push({ id: hit.entity_id, name: hit.name, image: hit.properties?.image?.url || null });
     console.log(`${ex.slug}: ${name} -> ${hit ? `${hit.name} ${hit.entity_id}` : 'not found'}`);
   }

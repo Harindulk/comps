@@ -229,13 +229,13 @@ function EvidenceDrawer({ refId, lookup, onClose }: { refId: string; lookup: Ret
           </table>
         ) : block.kind === 'trending' ? (
           <table>
-            <thead><tr><th>Comp</th><th className="n">Percentile</th><th className="n">Velocity</th><th className="n">Days</th></tr></thead>
-            <tbody>{block.items.map((i) => <tr key={i.id} className={i.id === refId ? 'hit' : ''}><td>{i.name}</td><td className="n">{n(i.percentile)}</td><td className="n">{n(i.velocity)}</td><td className="n">{i.series?.length ?? 0}</td></tr>)}</tbody>
+            <thead><tr><th>Pick</th><th className="n">Percentile</th><th className="n">Change</th><th className="n">Points</th></tr></thead>
+            <tbody>{block.items.map((i) => <tr key={i.id} className={i.id === refId ? 'hit' : ''}><td>{i.name}<div className="small muted">{i.domain?.replace('_', ' ')} from {i.source}{i.from ? `, ${i.from} to ${i.to}` : ', no data'}</div></td><td className="n">{n(i.percentile)}</td><td className="n">{i.change == null ? '-' : (i.change > 0 ? '+' : '') + i.change.toFixed(3)}</td><td className="n">{i.series?.length ?? 0}</td></tr>)}</tbody>
           </table>
         ) : block.kind === 'compare' ? (
           <table>
-            <thead><tr><th>Entity</th><th className="n">a</th><th className="n">b</th><th className="n">Delta</th></tr></thead>
-            <tbody>{block.items.map((i) => <tr key={i.id} className={i.id === refId ? 'hit' : ''}><td>{i.name}<div className="small muted">{i.subtype}</div></td><td className="n">{n(i.a)}</td><td className="n">{n(i.b)}</td><td className="n">{n(i.delta)}</td></tr>)}</tbody>
+            <thead><tr><th>Tag</th><th>Side</th><th className="n">Similarity</th></tr></thead>
+            <tbody>{block.items.map((i) => <tr key={i.id} className={i.id === refId ? 'hit' : ''}><td>{i.name}<div className="small muted">{i.kind}</div></td><td>{i.side}</td><td className="n">{n(i.score)}</td></tr>)}</tbody>
           </table>
         ) : (
           <table>

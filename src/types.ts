@@ -11,20 +11,24 @@ export type Item = {
   tags?: string[]
   driven_by?: Driver[]
   kind?: string
+  domain?: string
   // demographics
   age?: Record<string, number>
   gender?: Record<string, number>
   // heatmap
   lat?: number
   lon?: number
+  region?: string
   // compare
-  a?: number
-  b?: number
-  delta?: number
+  side?: string
+  score?: number
   // trending
-  series?: { date: string; percentile: number; velocity: number }[]
+  series?: { date: string; percentile: number; rank: number }[]
   percentile?: number
-  velocity?: number
+  change?: number
+  source?: string
+  from?: string
+  to?: string
   error?: string
 }
 export type Block = {
