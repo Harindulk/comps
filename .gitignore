@@ -5,3 +5,8 @@ node_modules/
 dist/
 .DS_Store
 notes/
+.taste-skill/
+public/examples/
+.cache/
+.vercel/
+!.env.example

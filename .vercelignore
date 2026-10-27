@@ -1,0 +1,8 @@
+.env
+.env.*
+!.env.example
+CLAUDE.md
+notes/
+.taste-skill/
+.cache/
+node_modules/
