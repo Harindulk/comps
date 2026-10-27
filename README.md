@@ -4,7 +4,7 @@
 
 Live: LIVE_URL · Licence: MIT
 
-Every indie developer pitches their game the same way: "it's Crossy Road meets Subway Surfers". Those comparable games ("comps") already tell you who your players are. Comps takes your game and two to five comps, sends an agent to ask Qloo what those players love outside games, who they are, where they live and whether the comps are rising or fading, and writes a launch plan where every claim links back to the Qloo data it rests on.
+Every indie developer pitches their game the same way: "it's Subway Surfers meets Temple Run". Those comparable games ("comps") already tell you who your players are. Comps takes your game and two to five comps, sends an agent to ask Qloo what those players love outside games, who they are and where they live, and writes a launch plan where every claim links back to the Qloo data it rests on.
 
 I make and launch mobile and Steam games myself (StarFun Games). The three example reports are my own games: Drive Away, Diner Rush Tycoon and The Final Room.
 
@@ -27,32 +27,39 @@ Vercel function (Node)  ── streams each step back as server-sent events
   ├─ Claude (claude-opus-5-5) tool-use loop, decides which Qloo calls to make
   │    audience_taste        /v2/insights  filter.type=urn:entity:{artist|podcast|tv_show|movie|book|brand|videogame|place}
   │                                         + feature.explainability (which comp drove each result)
-  │    audience_tags         /v2/insights  filter.type=urn:tag
+  │    audience_tags         /v2/insights  filter.type=urn:tag (+ filter.parents.types=urn:entity:videogame)
   │    audience_demographics /v2/insights  filter.type=urn:demographics
-  │    audience_geography    /v2/insights  filter.type=urn:heatmap (+ filter.location.query to zoom in)
-  │    compare_audiences     /v2/analysis/compare
-  │    comp_momentum         /v2/trending
+  │    audience_geography    /v2/insights  filter.type=urn:heatmap + filter.location.query=<country or city>
+  │    compare_audiences     /v2/analysis/compare (shared and unique taste tags between comps)
+  │    check_momentum        /v2/trending on the artists and podcasts it already found
   │    submit_report         strict JSON schema; every claim lists evidence IDs
   ├─ every Qloo answer is filed as an evidence block (E1, E2…) with item IDs (E1.1, E1.2…)
   ├─ citations are checked server-side; IDs that point at nothing are dropped and counted
   └─ in parallel: the same model, same brief, no tools → the "Without Qloo" plan
 ```
 
-The agent is not a fixed pipeline. It reads the first answers and decides what to ask next: if the global heatmap points at Brazil it zooms into Brazil; if two comps look different it runs a compare between them. A typical run makes 8 to 12 Qloo calls across six endpoint modes and reads 150 to 300 data points.
+The agent is not a fixed pipeline. It reads the first answers and decides what to ask next: which countries to map given the age skew and the comps, which two comps to compare, and which of the artists and podcasts it found are worth a momentum check before it recommends them. A typical run makes 8 to 14 Qloo calls.
 
 ### Qloo endpoints used
 
 | Endpoint | Used for |
 | --- | --- |
 | `GET /search` (`types=urn:entity:videogame`) | the comps picker, resolving game names to Qloo IDs |
-| `GET /v2/insights` with `filter.type=urn:entity:*` and `feature.explainability=true` | cross-domain taste: music, podcasts, TV, movies, books, brands, other games, places |
-| `GET /v2/insights` with `filter.type=urn:tag` | taste tags for store copy and positioning |
+| `GET /v2/insights` with `filter.type=urn:entity:*` and `feature.explainability=true` | cross-domain taste: music, podcasts, TV, movies, books, brands, other games, with which comp drove each result |
+| `GET /v2/insights` with `filter.type=urn:tag` | game tags (scoped with `filter.parents.types`) for the store page, cultural tags for positioning |
 | `GET /v2/insights` with `filter.type=urn:demographics` | age-band and gender skew per comp |
-| `GET /v2/insights` with `filter.type=urn:heatmap` (global and zoomed) | launch and localisation markets |
-| `GET /v2/analysis/compare` | what separates one comp's audience from another's |
-| `GET /v2/trending` | whether each comp is gaining or losing attention, for timing |
+| `GET /v2/insights` with `filter.type=urn:heatmap` and `filter.location.query` | where inside a country fans concentrate, for ad targeting |
+| `GET /v2/analysis/compare` | taste tags two comps share and the ones unique to each |
+| `GET /v2/trending` | whether a recommended artist or podcast is rising or fading |
 
-A gotcha for other entrants: game search and insights use `urn:entity:videogame`; `urn:entity:video_game` is rejected even though some docs show it.
+Notes for other entrants, from the live hackathon API:
+
+- Game search and insights use `urn:entity:videogame`; `urn:entity:video_game` is rejected even though some docs show it.
+- Heatmaps need `filter.location.query` (a country or city; continents fail) and can return thousands of cells, so rank and trim them.
+- `/v2/trending` takes exactly one signal entity of the same type as `filter.type`, and does not accept video games.
+- `/v2/analysis/compare` on games returns tags (`results.tags`, `results.a`, `results.b`), not entities.
+- Coverage of mobile games is patchy: Crossy Road and Cooking Fever are missing, Subway Surfers and Temple Run are there.
+- The gateway returns the odd 502; one retry fixes it.
 
 ## Run it locally
 
@@ -75,6 +82,7 @@ Vercel, free tier. `api/run.js` streams for up to 300 seconds. Set `QLOO_API_KEY
 ## Limits
 
 - Qloo coverage of small indie titles is thin, so pick comps that are well known; your own game does not need to be in Qloo.
+- Heatmap scores are relative inside each country, so the map shows where to target within a market, not which market is bigger.
 - The rate limits and the Qloo response cache live in memory per server instance.
 - The player panel is built from aggregate data. The players are illustrations of the audience, not real people.
 - A live run takes one to three minutes and costs about a dollar of Claude usage, which is why the examples exist.
