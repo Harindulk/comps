@@ -10,3 +10,4 @@ public/examples/
 .cache/
 .vercel/
 !.env.example
+.claude/
