@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { Comp, Run, Step } from './types'
 import { ReportView } from './Report'
 
-type Example = { slug: string; game: string; pitch: string; comps: string[] }
+type Example = { slug: string; game: string; positioning: string; comps: Comp[]; calls: number; cited: number; claims: number }
 
 function useExamples() {
   const [list, setList] = useState<Example[] | null>(null)
@@ -83,7 +83,7 @@ function Home({ onRun, examples }: { onRun: (input: Run['input']) => void; examp
         <form className="card form" onSubmit={(e) => { e.preventDefault(); if (ok) onRun({ game: { name: name.trim(), pitch: pitch.trim() }, comps }) }}>
           <h2>New plan</h2>
           <label className="field">Your game<input className="input" value={name} onChange={(e) => setName(e.target.value)} maxLength={80} placeholder="Drive Away" /></label>
-          <label className="field">One-line pitch<textarea className="input" value={pitch} onChange={(e) => setPitch(e.target.value)} maxLength={500} placeholder="A one-thumb endless driving game: dodge traffic on a highway that never ends, unlock cars, chase your best distance." /></label>
+          <label className="field">One-line pitch<textarea className="input" value={pitch} onChange={(e) => setPitch(e.target.value)} maxLength={500} placeholder="A one-thumb endless driving game: dodge traffic on a highway that never ends, earn new cars, chase your best distance." /></label>
           <div className="field" style={{ display: 'grid', gap: 6 }}>
             <label htmlFor="comp-search" className="small muted">Comparable games</label>
             <Picker value={comps} onChange={setComps} />
@@ -101,8 +101,11 @@ function Home({ onRun, examples }: { onRun: (input: Run['input']) => void; examp
               {examples.map((x) => (
                 <li key={x.slug}>
                   <a href={`?example=${x.slug}`}>
-                    <span className="rowtitle">{x.game}</span><span className="small muted">Open</span>
-                    <span className="small muted" style={{ gridColumn: '1 / -1' }}>Comps: {x.comps.join(', ')}</span>
+                    <span className="rowtitle">{x.game}</span><span className="small muted num">{x.calls} Qloo calls · {x.cited}/{x.claims} cited</span>
+                    <span style={{ gridColumn: '1 / -1', display: 'flex', gap: 6, flexWrap: 'wrap', margin: '6px 0' }}>
+                      {x.comps.map((c) => <span key={c.id} className="tag" style={{ paddingLeft: c.image ? 3 : 10, gap: 8, height: 24 }}>{c.image && <img src={c.image} alt="" className="thumb" style={{ width: 18, height: 18, borderRadius: 9 }} />}{c.name}</span>)}
+                    </span>
+                    <span className="small" style={{ gridColumn: '1 / -1' }}>{x.positioning}</span>
                   </a>
                 </li>
               ))}

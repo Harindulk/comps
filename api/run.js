@@ -12,7 +12,7 @@ function validate(body) {
   const pitch = String(game.pitch || '').trim().slice(0, 500);
   const comps = (Array.isArray(body?.comps) ? body.comps : [])
     .filter((c) => UUID.test(c?.id || ''))
-    .map((c) => ({ id: c.id, name: String(c.name || '').slice(0, 80) }));
+    .map((c) => ({ id: c.id, name: String(c.name || '').slice(0, 80), image: /^https:\/\//.test(c.image || '') ? String(c.image).slice(0, 500) : null }));
   if (!name || !pitch) return { error: 'Give the game a name and a one-line pitch.' };
   if (comps.length < 2 || comps.length > 5) return { error: 'Pick two to five comparable games.' };
   return { input: { game: { name, pitch }, comps } };

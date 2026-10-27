@@ -19,7 +19,7 @@ for (const ex of EXAMPLES.filter((e) => !only || e.slug === only)) {
   for (const name of ex.comps) {
     const r = await qloo('/search', { query: name, types: 'urn:entity:videogame', take: 1 });
     const hit = r.results?.[0];
-    if (hit) comps.push({ id: hit.entity_id, name: hit.name });
+    if (hit) comps.push({ id: hit.entity_id, name: hit.name, image: hit.properties?.image?.url || null });
     console.log(`${ex.slug}: ${name} -> ${hit ? `${hit.name} ${hit.entity_id}` : 'not found'}`);
   }
   const input = { game: { name: ex.game, pitch: ex.pitch }, comps };
@@ -36,7 +36,11 @@ const index = [];
 for (const ex of EXAMPLES) {
   try {
     const run = JSON.parse(await fs.readFile(new URL(`${ex.slug}.json`, dir), 'utf8'));
-    index.push({ slug: ex.slug, game: ex.game, pitch: ex.pitch, comps: run.input.comps.map((c) => c.name) });
+    const claims = run.report.sections.flatMap((x) => x.claims);
+    index.push({
+      slug: ex.slug, game: ex.game, positioning: run.report.positioning, comps: run.input.comps,
+      calls: run.meta.calls.length, cited: claims.filter((c) => c.evidence.length).length, claims: claims.length,
+    });
   } catch { /* not built yet */ }
 }
 await fs.writeFile(new URL('index.json', dir), JSON.stringify(index, null, 2));

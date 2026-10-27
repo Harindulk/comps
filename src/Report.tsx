@@ -43,6 +43,7 @@ export function ReportView({ run }: { run: Run }) {
 
   const claims = run.report.sections.flatMap((s) => s.claims)
   const cited = claims.filter((c) => c.evidence.length).length
+  const kinds = new Set(run.meta.calls.map((c) => c.tool)).size
   const points = run.evidence.reduce((n, b) => n + b.items.length, 0)
   const demo = run.evidence.find((b) => b.kind === 'demographics')
   const heat = run.evidence.filter((b) => b.kind === 'heatmap')
@@ -66,8 +67,8 @@ export function ReportView({ run }: { run: Run }) {
           </p>
         </div>
         <div className="seg" role="group" aria-label="Which plan to show">
-          <button aria-pressed={!isBase} onClick={() => setMode('qloo')}>With Qloo</button>
-          <button aria-pressed={isBase} onClick={() => setMode('baseline')} disabled={!baselineOk}>Without Qloo</button>
+          <button aria-pressed={!isBase} onClick={() => setMode('qloo')}>With Qloo <span className="num">· {cited} cited</span></button>
+          <button aria-pressed={isBase} onClick={() => setMode('baseline')} disabled={!baselineOk}>Without Qloo <span className="num">· 0 cited</span></button>
         </div>
       </div>
 
@@ -76,15 +77,20 @@ export function ReportView({ run }: { run: Run }) {
       )}
 
       <div className="card reveal">
-        <p className="small muted" style={{ marginBottom: 8 }}>{run.input.game.pitch}</p>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginBottom: 12 }}>
+          {run.input.comps.map((c) => (
+            <span key={c.id} className="tag" style={{ paddingLeft: c.image ? 3 : 10, gap: 8 }}>{c.image && <img src={c.image} alt="" className="thumb" style={{ width: 20, height: 20, borderRadius: 10 }} />}{c.name}</span>
+          ))}
+          <span className="small muted">{run.input.game.pitch}</span>
+        </div>
         <p className="positioning">{report.positioning}</p>
       </div>
 
       <div className="grid4">
-        <div className="card stat reveal"><div className="label">Qloo calls the agent chose</div><div className="value">{isBase ? 0 : run.meta.calls.length}</div><div className="foot">{new Set(run.meta.calls.map((c) => c.tool)).size} different endpoints</div></div>
-        <div className="card stat reveal"><div className="label">Data points read</div><div className="value">{isBase ? 0 : points}</div><div className="foot">entities, tags, places, skews</div></div>
-        <div className="card stat reveal"><div className="label">Claims with a source</div><div className="value">{isBase ? `0 of ${report.sections.flatMap((s) => s.claims).length}` : `${cited} of ${claims.length}`}</div><div className="foot">click any chip to check it</div></div>
-        <div className="card stat reveal"><div className="label">Panel verdict</div><div className="value">{report.player_panel.filter((p) => p.verdict === 'buy').length} buy · {report.player_panel.filter((p) => p.verdict === 'wishlist').length} wishlist</div><div className="foot">{report.player_panel.filter((p) => p.verdict === 'pass').length} pass, of {report.player_panel.length} players</div></div>
+        <div className="card stat reveal"><div className="label">Qloo calls the agent chose</div><div className="value">{isBase ? 0 : run.meta.calls.length}</div><div className="note">{kinds} kind{kinds === 1 ? '' : 's'} of Qloo query</div></div>
+        <div className="card stat reveal"><div className="label">Data points read</div><div className="value">{isBase ? 0 : points}</div><div className="note">entities, tags, places, skews</div></div>
+        <div className="card stat reveal"><div className="label">Claims with a source</div><div className="value">{isBase ? `0 of ${report.sections.flatMap((s) => s.claims).length}` : `${cited} of ${claims.length}`}</div><div className="note">click any chip to check it</div></div>
+        <div className="card stat reveal"><div className="label">Panel verdict</div><div className="value">{report.player_panel.filter((p) => p.verdict === 'buy').length} buy · {report.player_panel.filter((p) => p.verdict === 'wishlist').length} wishlist</div><div className="note">{report.player_panel.filter((p) => p.verdict === 'pass').length} pass, of {report.player_panel.length} players</div></div>
       </div>
 
       {!isBase && (

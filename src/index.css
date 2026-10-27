@@ -104,7 +104,7 @@ textarea.input { height: auto; min-height: 76px; padding: 10px 12px; resize: ver
 /* stats */
 .stat .label { font-size: var(--fs-small); color: var(--muted); }
 .stat .value { font-size: 22px; font-weight: 600; margin-top: 2px; font-variant-numeric: tabular-nums; }
-.stat .foot { font-size: var(--fs-small); color: var(--muted); margin-top: 2px; }
+.stat .note { font-size: var(--fs-small); color: var(--muted); margin-top: 2px; }
 
 /* positioning */
 .positioning { font-size: 20px; line-height: 1.45; letter-spacing: -0.005em; max-width: 64ch; }
