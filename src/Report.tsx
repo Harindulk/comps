@@ -116,8 +116,8 @@ export function ReportView({ run }: { run: Run }) {
           <div className="card">
             <h2>Who plays the comps</h2>
             <p className="lede">Average skew across the comp audiences against the typical Qloo user. Right of the line means over-represented.</p>
-            {demo ? <AgeSkew block={demo} /> : <p className="muted">No demographic data came back for these comps.</p>}
-            {demo && <button className="cite" style={{ marginTop: 14 }} onClick={() => setOpen(demo.id)}><b>{demo.id}</b><span>per-comp breakdown</span></button>}
+            {demo?.items.length ? <AgeSkew block={demo} /> : <p className="muted">Qloo has no age or gender data for these comps, so the plan doesn't claim a skew. The age panel below still re-weights taste by age band.</p>}
+            {demo?.items.length ? <button className="cite" style={{ marginTop: 14 }} onClick={() => setOpen(demo.id)}><b>{demo.id}</b><span>per-comp breakdown</span></button> : null}
           </div>
           <div className="card">
             <h2>Where they live</h2>
@@ -215,7 +215,7 @@ export function ReportView({ run }: { run: Run }) {
         </section>
         <section className="card" aria-labelledby="h-tags">
           <h2 id="h-tags">Taste tags behind it</h2>
-          {!isBase && tags ? (
+          {!isBase && tags && !tags.items.length ? <p className="lede">Qloo returned no tags for these comps ({tags.id}), so the store tags are drafted from the other evidence.</p> : !isBase && tags ? (
             <>
               <p className="lede">What fans of the comps over-index on, from {tags.id}.</p>
               <div className="tags">{tags.items.slice(0, 18).map((t) => <button key={t.id} className="tag" style={{ border: 0, cursor: 'pointer' }} onClick={() => setOpen(t.id)}>{t.name}</button>)}</div>

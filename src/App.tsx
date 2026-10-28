@@ -75,26 +75,26 @@ function Home({ onRun, examples }: { onRun: (input: Run['input']) => void; examp
   const hero = examples?.[0]
   return (
     <>
-      <div className="titlerow">
+      <div className="hero">
         <div>
-          <h1>Your comps know who will love your game. Comps shows you where to find them.</h1>
-          <p className="sub" style={{ fontSize: 14, maxWidth: '70ch' }}>Give it your game, a one-line pitch and two to five comparable games. An agent asks Qloo what those players love outside games, who they skew towards and where their taste concentrates, then writes a launch plan where every claim links to the Qloo result behind it.</p>
-          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 16 }}>
+          <h1 className="hero-title">Your comps know who will love your game.</h1>
+          <p className="sub" style={{ fontSize: 15, maxWidth: '62ch', color: 'var(--text)', marginTop: 10 }}>Comps shows you where to find them. Give it your game, a one-line pitch and two to five comparable games. An agent asks Qloo what those players love outside games, who they skew towards and where their taste concentrates, then writes a launch plan where every claim links to the Qloo result behind it.</p>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 18 }}>
             {hero && <a className="btn" href={`?example=${hero.slug}`}>Open {hero.game}{hero.own ? ', a real game' : ''} (instant)</a>}
             <a className="btn ghost" href="#new-plan">Analyse my game</a>
           </div>
           <p className="small muted" style={{ marginTop: 10 }}>No sign-up · every key claim traceable to Qloo · the same plan with and without taste data</p>
         </div>
+        {hero?.with_hook && hero.without_hook && (
+          <section className="card compare-card" aria-labelledby="h-diff">
+            <h2 id="h-diff" className="muted" style={{ fontWeight: 500, fontSize: 13 }}>{hero.game}: the cultural hook. Same model, same brief.</h2>
+            <div style={{ display: 'grid', gap: 16, marginTop: 12 }}>
+              <div><p className="small muted">Without Qloo</p><p className="quote muted">{hero.without_hook}</p></div>
+              <div><p className="small" style={{ color: 'var(--hue)' }}>With Qloo</p><p className="quote">{hero.with_hook}</p></div>
+            </div>
+          </section>
+        )}
       </div>
-      {hero?.with_hook && hero.without_hook && (
-        <section className="card compare-card" aria-labelledby="h-diff">
-          <h2 id="h-diff" className="small muted" style={{ fontWeight: 500, fontSize: 12 }}>{hero.game}: the cultural hook, same model and same brief</h2>
-          <div className="grid2" style={{ gap: 24, marginTop: 8 }}>
-            <div><p className="small muted">Without Qloo</p><p className="quote muted">{hero.without_hook}</p></div>
-            <div><p className="small" style={{ color: 'var(--hue)' }}>With Qloo</p><p className="quote">{hero.with_hook}</p></div>
-          </div>
-        </section>
-      )}
       <div className="split">
         <form id="new-plan" className="card form" onSubmit={(e) => { e.preventDefault(); if (ok) onRun({ game: { name: name.trim(), pitch: pitch.trim() }, comps, shortlist: shortlist.split(',').map((x) => x.trim()).filter(Boolean).slice(0, 8) }) }}>
           <h2>New plan</h2>

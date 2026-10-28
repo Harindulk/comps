@@ -22,7 +22,7 @@
   --fs-title: 24px;
   --fs-section: 16px;
   --fs-body: 14px;
-  --fs-small: 12px;
+  --fs-small: 13px;
   font-family: "Geist", Inter, system-ui, sans-serif;
   font-size: var(--fs-body);
   line-height: 1.5;
@@ -65,7 +65,7 @@ a { color: inherit; }
 .btn { height: 36px; padding: 0 14px; border-radius: var(--radius-control); border: 0; background: var(--accent); color: #fff; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; white-space: nowrap; transition: transform .12s ease, background-color .12s ease; }
 .btn:hover { background: #2b2b2b; }
 .btn:active { transform: translateY(1px); }
-.btn:disabled { background: var(--control); cursor: not-allowed; }
+.btn:disabled { background: var(--raised); color: var(--muted); cursor: not-allowed; }
 .btn.ghost { background: #e5e5e5; color: var(--text); }
 .btn.ghost:hover { background: #dadada; }
 .btn.quiet { background: transparent; color: var(--muted); padding: 0 10px; }
@@ -193,7 +193,9 @@ textarea.input { height: auto; min-height: 76px; padding: 10px 12px; resize: ver
   .card { padding: 16px; }
   .positioning { font-size: 17px; }
   .barrow { grid-template-columns: minmax(0, 1fr) 80px 40px; }
-  .bar nav .hide-sm { display: none; }
+  .hide-sm { display: none; }
+  .hero { grid-template-columns: 1fr; }
+  .hero-title { font-size: 26px; }
 }
 .pill.niche { height: 18px; margin-left: 6px; background: var(--hue-pale); color: #0f3a78; font-size: 11px; vertical-align: 1px; }
 .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
@@ -207,3 +209,6 @@ textarea.input { height: auto; min-height: 76px; padding: 10px 12px; resize: ver
 .compare-card { background: var(--surface); }
 html { scroll-behavior: smooth; }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+.hero { display: grid; grid-template-columns: 1.25fr 1fr; gap: 32px; align-items: center; margin: 8px 0 20px; }
+.hero-title { font-size: 32px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.15; }
+@media (max-width: 860px) { .hero { grid-template-columns: 1fr; } .hero-title { font-size: 26px; } }
