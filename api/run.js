@@ -16,7 +16,9 @@ function validate(body) {
     .map((c) => ({ id: c.id, name: String(c.name || '').slice(0, 80), image: /^https:\/\//.test(c.image || '') ? String(c.image).slice(0, 500) : null }));
   if (!name || !pitch) return { error: 'Give the game a name and a one-line pitch.' };
   if (comps.length < 2 || comps.length > 5) return { error: 'Pick two to five comparable games.' };
-  return { input: { game: { name, pitch }, comps } };
+  const shortlist = (Array.isArray(body?.shortlist) ? body.shortlist : String(body?.shortlist || '').split(','))
+    .map((x) => String(x).trim().slice(0, 60)).filter(Boolean).slice(0, 8);
+  return { input: { game: { name, pitch }, comps, shortlist } };
 }
 
 function limited(ip) {
@@ -25,7 +27,7 @@ function limited(ip) {
   if (d !== day) { day = d; today = 0; }
   if (today >= Number(process.env.MAX_RUNS_PER_DAY || 60)) return 'Today\'s live-run budget is used up. The example reports still work.';
   const recent = (hits.get(ip) || []).filter((t) => now - t < 3600e3);
-  if (recent.length >= Number(process.env.MAX_RUNS_PER_HOUR || 4)) return 'That is four live runs this hour from your connection. Try again later, or open an example report.';
+  if (recent.length >= Number(process.env.MAX_RUNS_PER_HOUR || 4)) return 'You have used this hour\'s live runs from your connection. Try again later, or open an example report.';
   hits.set(ip, [...recent, now]);
   today++;
   return null;
@@ -34,8 +36,9 @@ function limited(ip) {
 export async function POST(request) {
   const { input, error } = validate(await request.json().catch(() => null));
   if (error) return Response.json({ error }, { status: 400 });
-  const key = JSON.stringify([input.game.name.toLowerCase(), input.game.pitch.toLowerCase(), input.comps.map((c) => c.id).sort()]);
+  const key = JSON.stringify([input.game.name.toLowerCase(), input.game.pitch.toLowerCase(), input.comps.map((c) => c.id).sort(), input.shortlist.map((x) => x.toLowerCase())]);
   if (done.has(key)) return new Response(`data: ${JSON.stringify(done.get(key))}\n\n`, { headers: { 'Content-Type': 'text/event-stream' } });
+  if (process.env.LIVE_RUNS === 'off') return Response.json({ error: 'Live runs are paused right now. The example reports still work.' }, { status: 503 });
   const ip = (request.headers.get('x-forwarded-for') || 'local').split(',')[0].trim();
   const why = limited(ip);
   if (why) return Response.json({ error: why }, { status: 429 });
