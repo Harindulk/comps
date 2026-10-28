@@ -36,7 +36,7 @@ function Cites({ refs, lookup, onPick, baseline }: { refs: string[]; lookup: Ret
 
 export function ReportView({ run }: { run: Run }) {
   const [mode, setMode] = useState<'qloo' | 'baseline'>('qloo')
-  const [open, setOpen] = useState<string | null>(null)
+  const [open, setOpen] = useState<string | null>(() => new URLSearchParams(location.search).get('evidence'))
   const lookup = useEvidence(run.evidence)
   const baselineOk = !('error' in run.baseline)
   const report: R = mode === 'baseline' && baselineOk ? (run.baseline as R) : run.report
@@ -191,7 +191,7 @@ export function ReportView({ run }: { run: Run }) {
       <section className="card" aria-labelledby="h-panel">
         <h2 id="h-panel">Grounded audience simulations</h2>
         <p className="lede">{isBase ? 'Four imagined players, with nothing behind them.' : 'Four deliberately synthetic players built only from this report\'s aggregate Qloo evidence. They are not surveyed players, predictions about individuals or a substitute for playtesting.'}</p>
-        <div className="grid4" style={{ gap: 20 }}>
+        <div className="grid4 panel-grid" style={{ gap: 20 }}>
           {report.player_panel.map((p, i) => (
             <article key={p.name} className="panelist">
               <div className="who">
@@ -228,7 +228,7 @@ export function ReportView({ run }: { run: Run }) {
         <section className="card" aria-labelledby="h-ledger">
           <h2 id="h-ledger">Evidence ledger</h2>
           <p className="lede">Every Qloo call the agent made, in order. The plan above cites these by ID.</p>
-          <table className="ledger">
+          <div className="table-wrap"><table className="ledger">
             <thead><tr><th>ID</th><th>What the agent asked</th><th>Endpoint</th><th className="n">Items</th><th className="n">Cited</th></tr></thead>
             <tbody>
               {run.evidence.map((b) => {
@@ -244,7 +244,7 @@ export function ReportView({ run }: { run: Run }) {
                 )
               })}
             </tbody>
-          </table>
+          </table></div>
         </section>
       )}
 
@@ -277,7 +277,7 @@ function EvidenceDrawer({ refId, lookup, onClose }: { refId: string; lookup: Ret
           </div>
         ) : null}
         {block.note && <p className="small muted">{block.note}</p>}
-        {['list', 'segment', 'shortlist', 'tags'].includes(block.kind) && <p className="small muted">Affinity is Qloo's relative score inside this result set, not a probability or a share of players.</p>}
+        {['list', 'segment', 'tags'].includes(block.kind) && <p className="small muted">Affinity is Qloo's relative score inside this result set, not a probability or a share of players.</p>}
         {block.kind === 'demographics' ? (
           <table>
             <thead><tr><th>Comp</th>{Object.keys(block.items[0]?.age || {}).map((k) => <th key={k} className="n">{k.replace(/_/g, ' ').replace('and ', '')}</th>)}</tr></thead>

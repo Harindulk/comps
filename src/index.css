@@ -212,3 +212,7 @@ html { scroll-behavior: smooth; }
 .hero { display: grid; grid-template-columns: 1.25fr 1fr; gap: 32px; align-items: center; margin: 8px 0 20px; }
 .hero-title { font-size: 32px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.15; }
 @media (max-width: 860px) { .hero { grid-template-columns: 1fr; } .hero-title { font-size: 26px; } }
+.page > *, .grid2 > *, .grid3 > *, .grid4 > *, .split > * { min-width: 0; }
+.table-wrap { overflow-x: auto; }
+.cite span { min-width: 0; }
+@media (max-width: 560px) { .panel-grid { grid-template-columns: 1fr; } }
