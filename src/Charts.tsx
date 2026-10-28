@@ -69,7 +69,7 @@ export function AffinityBars({ items, onPick, limit = 6 }: { items: Item[]; onPi
     <div className="bars">
       {shown.map((i) => (
         <button key={i.id} className="barrow" onClick={() => onPick(i.id)} style={{ border: 0, background: 'none', padding: 0, cursor: 'pointer', textAlign: 'left' }} aria-label={`${i.name}, affinity ${fmt(i.affinity)}, open evidence ${i.id}`}>
-          <span className="name">{i.name}</span>
+          <span className="name">{i.name}{i.niche && <span className="pill niche" title="High affinity, lower popularity than the rest of this list">niche fit</span>}</span>
           <span className="track"><span className="fill" style={{ display: 'block', width: `${((i.affinity ?? 0) / max) * 100}%` }} /></span>
           <span className="val">{fmt(i.affinity)}</span>
         </button>

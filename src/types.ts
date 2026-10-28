@@ -10,6 +10,7 @@ export type Item = {
   subtype?: string
   tags?: string[]
   driven_by?: Driver[]
+  niche?: boolean
   kind?: string
   domain?: string
   // demographics

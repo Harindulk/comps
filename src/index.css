@@ -195,3 +195,4 @@ textarea.input { height: auto; min-height: 76px; padding: 10px 12px; resize: ver
   .barrow { grid-template-columns: minmax(0, 1fr) 80px 40px; }
   .bar nav .hide-sm { display: none; }
 }
+.pill.niche { height: 18px; margin-left: 6px; background: var(--hue-pale); color: #0f3a78; font-size: 11px; vertical-align: 1px; }
