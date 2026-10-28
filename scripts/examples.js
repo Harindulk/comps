@@ -39,7 +39,9 @@ for (const ex of EXAMPLES) {
     const claims = run.report.sections.flatMap((x) => x.claims);
     index.push({
       slug: ex.slug, game: ex.game, positioning: run.report.positioning, comps: run.input.comps,
-      calls: run.meta.calls.length, cited: claims.filter((c) => c.evidence.length).length, claims: claims.length,
+      calls: run.meta.calls.length, cited: claims.filter((c) => c.evidence.length).length, claims: claims.length, own: true,
+      with_hook: run.report.decisions?.find((d) => d.label === 'hook')?.text,
+      without_hook: run.baseline?.decisions?.find((d) => d.label === 'hook')?.text,
     });
   } catch { /* not built yet */ }
 }

@@ -196,3 +196,14 @@ textarea.input { height: auto; min-height: 76px; padding: 10px 12px; resize: ver
   .bar nav .hide-sm { display: none; }
 }
 .pill.niche { height: 18px; margin-left: 6px; background: var(--hue-pale); color: #0f3a78; font-size: 11px; vertical-align: 1px; }
+.grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+.decision { display: grid; gap: 6px; align-content: start; }
+.decision-text { font-size: 16px; line-height: 1.5; }
+.verdict-row { display: grid; grid-template-columns: 64px 1fr; gap: 12px; align-items: start; }
+.pill.keep { background: var(--pill-positive-bg); color: var(--pill-positive-ink); }
+.pill.test { background: var(--pill-warning-bg); color: var(--pill-warning-ink); }
+.pill.drop { background: var(--pill-negative-bg); color: var(--pill-negative-ink); }
+@media (max-width: 860px) { .grid3 { grid-template-columns: 1fr; gap: 16px; } }
+.compare-card { background: var(--surface); }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }

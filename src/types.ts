@@ -31,10 +31,12 @@ export type Item = {
   from?: string
   to?: string
   error?: string
+  status?: string
+  segment?: string
 }
 export type Block = {
   id: string
-  kind: 'list' | 'tags' | 'demographics' | 'heatmap' | 'compare' | 'trending'
+  kind: 'list' | 'tags' | 'demographics' | 'heatmap' | 'compare' | 'trending' | 'shortlist' | 'segment'
   title: string
   endpoint: string
   params: Record<string, unknown>
@@ -47,12 +49,14 @@ export type Section = { kind: string; heading: string; claims: Claim[] }
 export type Panelist = { name: string; profile: string; reaction: string; verdict: 'buy' | 'wishlist' | 'pass'; evidence: string[] }
 export type Report = {
   positioning: string
+  decisions?: { label: string; text: string; evidence: string[] }[]
+  shortlist_verdicts?: { name: string; verdict: 'keep' | 'test' | 'drop'; reason: string; evidence: string[] }[]
   sections: Section[]
   store_copy: { short_description: string; tags: string[]; evidence: string[] }
   player_panel: Panelist[]
 }
 export type Run = {
-  input: { game: { name: string; pitch: string }; comps: Comp[] }
+  input: { game: { name: string; pitch: string }; comps: Comp[]; shortlist?: string[] }
   report: Report
   baseline: Report | { error: string }
   evidence: Block[]

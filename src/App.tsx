@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { Comp, Run, Step } from './types'
 import { ReportView } from './Report'
 
-type Example = { slug: string; game: string; positioning: string; comps: Comp[]; calls: number; cited: number; claims: number }
+type Example = { slug: string; game: string; with_hook?: string; without_hook?: string; own?: boolean; positioning: string; comps: Comp[]; calls: number; cited: number; claims: number }
 
 function useExamples() {
   const [list, setList] = useState<Example[] | null>(null)
@@ -70,17 +70,33 @@ function Home({ onRun, examples }: { onRun: (input: Run['input']) => void; examp
   const [name, setName] = useState('')
   const [pitch, setPitch] = useState('')
   const [comps, setComps] = useState<Comp[]>([])
+  const [shortlist, setShortlist] = useState('')
   const ok = name.trim() && pitch.trim() && comps.length >= 2
+  const hero = examples?.[0]
   return (
     <>
       <div className="titlerow">
         <div>
-          <h1>Launch plans from the games your players already love</h1>
-          <p className="sub">Name your game and two to five comparable games. An agent asks Qloo what those players love, who they are and where they live, then writes a plan where every claim links to the data.</p>
+          <h1>Your comps know who will love your game. Comps shows you where to find them.</h1>
+          <p className="sub" style={{ fontSize: 14, maxWidth: '70ch' }}>Give it your game, a one-line pitch and two to five comparable games. An agent asks Qloo what those players love outside games, who they skew towards and where their taste concentrates, then writes a launch plan where every claim links to the Qloo result behind it.</p>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 16 }}>
+            {hero && <a className="btn" href={`?example=${hero.slug}`}>Open {hero.game}{hero.own ? ', a real game' : ''} (instant)</a>}
+            <a className="btn ghost" href="#new-plan">Analyse my game</a>
+          </div>
+          <p className="small muted" style={{ marginTop: 10 }}>No sign-up · every key claim traceable to Qloo · the same plan with and without taste data</p>
         </div>
       </div>
+      {hero?.with_hook && hero.without_hook && (
+        <section className="card compare-card" aria-labelledby="h-diff">
+          <h2 id="h-diff" className="small muted" style={{ fontWeight: 500, fontSize: 12 }}>{hero.game}: the cultural hook, same model and same brief</h2>
+          <div className="grid2" style={{ gap: 24, marginTop: 8 }}>
+            <div><p className="small muted">Without Qloo</p><p className="quote muted">{hero.without_hook}</p></div>
+            <div><p className="small" style={{ color: 'var(--hue)' }}>With Qloo</p><p className="quote">{hero.with_hook}</p></div>
+          </div>
+        </section>
+      )}
       <div className="split">
-        <form className="card form" onSubmit={(e) => { e.preventDefault(); if (ok) onRun({ game: { name: name.trim(), pitch: pitch.trim() }, comps }) }}>
+        <form id="new-plan" className="card form" onSubmit={(e) => { e.preventDefault(); if (ok) onRun({ game: { name: name.trim(), pitch: pitch.trim() }, comps, shortlist: shortlist.split(',').map((x) => x.trim()).filter(Boolean).slice(0, 8) }) }}>
           <h2>New plan</h2>
           <label className="field">Your game<input className="input" value={name} onChange={(e) => setName(e.target.value)} maxLength={80} placeholder="Drive Away" /></label>
           <label className="field">One-line pitch<textarea className="input" value={pitch} onChange={(e) => setPitch(e.target.value)} maxLength={500} placeholder="A one-thumb endless driving game: dodge traffic on a highway that never ends, earn new cars, chase your best distance." /></label>
@@ -88,6 +104,7 @@ function Home({ onRun, examples }: { onRun: (input: Run['input']) => void; examp
             <label htmlFor="comp-search" className="small muted">Comparable games</label>
             <Picker value={comps} onChange={setComps} />
           </div>
+          <label className="field">Who were you going to pitch? Optional<input className="input" value={shortlist} onChange={(e) => setShortlist(e.target.value)} maxLength={480} placeholder="Podcasts, streamers or artists, separated by commas" aria-describedby="shortlist-hint" /><span id="shortlist-hint" className="hint">Up to 8 names. Qloo scores each one against your comps' players.</span></label>
           <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
             <button className="btn" disabled={!ok}>Build the plan</button>
             <span className="hint">Takes one to three minutes.</span>
@@ -141,7 +158,12 @@ function Running({ input, steps, error, started }: { input: Run['input']; steps:
             ))}
             {!error && <li><span className="dot live" /><span className="muted">{steps.length ? 'Reading the evidence, deciding what to ask next' : 'Planning which questions to ask Qloo'}</span><span /></li>}
           </ul>
-          {error && <p className="error" style={{ marginTop: 12 }}>{error}</p>}
+          {error && (
+            <div style={{ marginTop: 12, display: 'grid', gap: 10 }}>
+              <p className="error">{error}</p>
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}><a className="btn" href="./">Open an example instead</a><a className="btn ghost" href="./#new-plan">Try again</a></div>
+            </div>
+          )}
         </section>
         <section className="card" aria-labelledby="h-meanwhile">
           <h2 id="h-meanwhile">Meanwhile</h2>
@@ -218,7 +240,7 @@ export default function App() {
     <>
       <header className="bar">
         <a className="brand" href="./"><img src="/mark.svg" alt="" />Comps</a>
-        <span className="small muted hide-sm">launch plans backed by Qloo taste data</span>
+        <span className="small muted hide-sm">launch intelligence for indie games, backed by Qloo</span>
         <span className="grow" />
         <nav>
           {run && <button className="btn quiet hide-sm" onClick={download}>Download JSON</button>}
