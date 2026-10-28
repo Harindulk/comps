@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Comp, Run, Step } from './types'
 import { ReportView } from './Report'
+import { FORMATS, type Format } from './formats'
 
 type Example = { slug: string; game: string; positioning: string; comps: Comp[]; calls: number; cited: number; claims: number }
 
@@ -10,7 +11,7 @@ function useExamples() {
   return list
 }
 
-function Picker({ value, onChange }: { value: Comp[]; onChange: (c: Comp[]) => void }) {
+function Picker({ value, onChange, format }: { value: Comp[]; onChange: (c: Comp[]) => void; format: Format }) {
   const [q, setQ] = useState('')
   const [results, setResults] = useState<Comp[]>([])
   const [active, setActive] = useState(0)
@@ -22,13 +23,13 @@ function Picker({ value, onChange }: { value: Comp[]; onChange: (c: Comp[]) => v
     if (q.trim().length < 2) { setResults([]); return }
     timer.current = window.setTimeout(async () => {
       try {
-        const r = await fetch(`/api/search?q=${encodeURIComponent(q.trim())}`).then((x) => x.json())
+        const r = await fetch(`/api/search?q=${encodeURIComponent(q.trim())}&types=${FORMATS[format].types}`).then((x) => x.json())
         setErr(r.error ? 'Search is unavailable right now.' : '')
         setResults((r.results || []).filter((c: Comp) => !value.some((v) => v.id === c.id)))
         setActive(0)
       } catch { setErr('Search is unavailable right now.') }
     }, 220)
-  }, [q, value])
+  }, [q, value, format])
 
   const add = (c: Comp) => { if (value.length < 5) onChange([...value, c]); setQ(''); setResults([]) }
   return (
@@ -41,7 +42,7 @@ function Picker({ value, onChange }: { value: Comp[]; onChange: (c: Comp[]) => v
       </div>
       <input
         className="input" id="comp-search" value={q} onChange={(e) => setQ(e.target.value)} disabled={value.length >= 5}
-        placeholder={value.length >= 5 ? 'Five is the limit' : 'Search Qloo for a game, e.g. Hades'}
+        placeholder={value.length >= 5 ? 'Five is the limit' : FORMATS[format].searchPh}
         role="combobox" aria-expanded={results.length > 0} aria-controls="comp-menu" aria-autocomplete="list"
         onKeyDown={(e) => {
           if (e.key === 'ArrowDown') { e.preventDefault(); setActive((a) => Math.min(a + 1, results.length - 1)) }
@@ -67,7 +68,9 @@ function Picker({ value, onChange }: { value: Comp[]; onChange: (c: Comp[]) => v
 }
 
 function Home({ onRun, examples }: { onRun: (input: Run['input']) => void; examples: Example[] | null }) {
+  const [format, setFormat] = useState<Format>('game')
   const [name, setName] = useState('')
+  const F = FORMATS[format]
   const [pitch, setPitch] = useState('')
   const [comps, setComps] = useState<Comp[]>([])
   const ok = name.trim() && pitch.trim() && comps.length >= 2
@@ -75,18 +78,26 @@ function Home({ onRun, examples }: { onRun: (input: Run['input']) => void; examp
     <>
       <div className="titlerow">
         <div>
-          <h1>Launch plans from the games your players already love</h1>
-          <p className="sub">Name your game and two to five comparable games. An agent asks Qloo what those players love, who they are and where they live, then writes a plan where every claim links to the data.</p>
+          <h1>Launch plans from the work your audience already loves</h1>
+          <p className="sub">Launching a game, an album, a comedy tour or a film? Name two to five comps your audience already loves. An agent asks Qloo what those fans love in other media, who they are and where they live, then writes a launch plan where every claim links to the data.</p>
         </div>
       </div>
       <div className="split">
-        <form className="card form" onSubmit={(e) => { e.preventDefault(); if (ok) onRun({ game: { name: name.trim(), pitch: pitch.trim() }, comps }) }}>
+        <form className="card form" onSubmit={(e) => { e.preventDefault(); if (ok) onRun({ format, game: { name: name.trim(), pitch: pitch.trim() }, comps }) }}>
           <h2>New plan</h2>
-          <label className="field">Your game<input className="input" value={name} onChange={(e) => setName(e.target.value)} maxLength={80} placeholder="Drive Away" /></label>
-          <label className="field">One-line pitch<textarea className="input" value={pitch} onChange={(e) => setPitch(e.target.value)} maxLength={500} placeholder="A one-thumb endless driving game: dodge traffic on a highway that never ends, earn new cars, chase your best distance." /></label>
           <div className="field" style={{ display: 'grid', gap: 6 }}>
-            <label htmlFor="comp-search" className="small muted">Comparable games</label>
-            <Picker value={comps} onChange={setComps} />
+            <span className="small muted" id="fmt-label">What are you launching?</span>
+            <div className="seg" role="group" aria-labelledby="fmt-label" style={{ flexWrap: 'wrap' }}>
+              {(Object.keys(FORMATS) as Format[]).map((f) => (
+                <button key={f} type="button" aria-pressed={format === f} onClick={() => { if (f !== format) { setFormat(f); setComps([]) } }}>{FORMATS[f].label}</button>
+              ))}
+            </div>
+          </div>
+          <label className="field">{F.title}<input className="input" value={name} onChange={(e) => setName(e.target.value)} maxLength={80} placeholder={F.titlePh} /></label>
+          <label className="field">One-line pitch<textarea className="input" value={pitch} onChange={(e) => setPitch(e.target.value)} maxLength={500} placeholder={F.pitchPh} /></label>
+          <div className="field" style={{ display: 'grid', gap: 6 }}>
+            <label htmlFor="comp-search" className="small muted">{F.compsLabel}</label>
+            <Picker value={comps} onChange={setComps} format={format} />
           </div>
           <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
             <button className="btn" disabled={!ok}>Build the plan</button>

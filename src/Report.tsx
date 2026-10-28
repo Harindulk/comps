@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { Block, Item, Report as R, Run } from './types'
 import { AffinityBars, AgeSkew, WorldMap } from './Charts'
+import { FORMATS, formatOf } from './formats'
 
 const SECTION_DOMAIN: Record<string, string> = { music: 'artist', creators: 'podcast', look: 'tv_show' }
 const TINTS = ['#e6eefa', '#e8f5ec', '#fbeee6', '#f1ebf8'] // pale identity tints, 60+ degrees apart
@@ -37,6 +38,7 @@ export function ReportView({ run }: { run: Run }) {
   const [mode, setMode] = useState<'qloo' | 'baseline'>('qloo')
   const [open, setOpen] = useState<string | null>(null)
   const lookup = useEvidence(run.evidence)
+  const F = FORMATS[formatOf(run.input.format)]
   const baselineOk = !('error' in run.baseline)
   const report: R = mode === 'baseline' && baselineOk ? (run.baseline as R) : run.report
   const isBase = mode === 'baseline'
@@ -96,7 +98,7 @@ export function ReportView({ run }: { run: Run }) {
       {!isBase && (
         <div className="grid2">
           <div className="card">
-            <h2>Who plays the comps</h2>
+            <h2>{F.who}</h2>
             <p className="lede">Average skew across the comp audiences against the typical Qloo user. Right of the line means over-represented.</p>
             {demo ? <AgeSkew block={demo} /> : <p className="muted">No demographic data came back for these comps.</p>}
             {demo && <button className="cite" style={{ marginTop: 14 }} onClick={() => setOpen(demo.id)}><b>{demo.id}</b><span>per-comp breakdown</span></button>}
@@ -134,8 +136,8 @@ export function ReportView({ run }: { run: Run }) {
       })}
 
       <section className="card" aria-labelledby="h-panel">
-        <h2 id="h-panel">Player panel</h2>
-        <p className="lede">{isBase ? 'Four imagined players, with nothing behind them.' : 'Four players built from the cited audience data, reacting to the pitch.'}</p>
+        <h2 id="h-panel">{F.panel}</h2>
+        <p className="lede">{isBase ? 'Four imagined people, with nothing behind them.' : F.panelLede}</p>
         <div className="grid4" style={{ gap: 20 }}>
           {report.player_panel.map((p, i) => (
             <article key={p.name} className="panelist">
@@ -153,7 +155,7 @@ export function ReportView({ run }: { run: Run }) {
 
       <div className="grid2">
         <section className="card" aria-labelledby="h-copy">
-          <h2 id="h-copy">Store page draft</h2>
+          <h2 id="h-copy">{F.copy}</h2>
           <p className="quote" style={{ margin: '8px 0 12px' }}>{report.store_copy.short_description}</p>
           <div className="tags">{report.store_copy.tags.map((t) => <span key={t} className="tag">{t}</span>)}</div>
           <Cites refs={report.store_copy.evidence} lookup={lookup} onPick={setOpen} baseline={isBase} />
