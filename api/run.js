@@ -4,6 +4,7 @@ import { runAgent, runBaseline } from '../lib/agent.js';
 const UUID = /^[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}$/i;
 // shortcut: per-instance memory limits; a determined abuser can hit several instances. Move to a KV store if that happens.
 const hits = new Map();
+const done = new Map(); // finished reports keyed by normalised input, so repeat runs are free and instant
 let day = '', today = 0;
 
 function validate(body) {
@@ -33,6 +34,8 @@ function limited(ip) {
 export async function POST(request) {
   const { input, error } = validate(await request.json().catch(() => null));
   if (error) return Response.json({ error }, { status: 400 });
+  const key = JSON.stringify([input.game.name.toLowerCase(), input.game.pitch.toLowerCase(), input.comps.map((c) => c.id).sort()]);
+  if (done.has(key)) return new Response(`data: ${JSON.stringify(done.get(key))}\n\n`, { headers: { 'Content-Type': 'text/event-stream' } });
   const ip = (request.headers.get('x-forwarded-for') || 'local').split(',')[0].trim();
   const why = limited(ip);
   if (why) return Response.json({ error: why }, { status: 429 });
@@ -45,7 +48,10 @@ export async function POST(request) {
       try {
         const baseline = runBaseline(input).catch((e) => ({ error: e.message }));
         const result = await runAgent(input, send);
-        send({ type: 'report', input, ...result, baseline: await baseline });
+        const payload = { type: 'report', input, ...result, baseline: await baseline };
+        if (done.size > 200) done.delete(done.keys().next().value);
+        done.set(key, payload);
+        send(payload);
       } catch (e) {
         console.error(e);
         send({ type: 'error', error: e.message });

@@ -186,7 +186,7 @@ export default function App() {
           if (msg.type === 'evidence') setLive((l) => {
             if (!l) return l
             const steps = [...l.steps]
-            const i = steps.findIndex((s) => !s.evidence && !s.error)
+            const i = steps.findIndex((s) => !s.evidence && !s.error && s.tool === msg.tool)
             if (i >= 0) steps[i] = { ...steps[i], evidence: msg.block.id }
             return { ...l, steps }
           })
