@@ -5,9 +5,9 @@ import { qloo } from '../lib/qloo.js';
 import { runAgent, runBaseline } from '../lib/agent.js';
 
 const EXAMPLES = [
-  { slug: 'drive-away', game: 'Drive Away', pitch: 'A one-thumb endless highway driving game for phones: weave through oncoming traffic, unlock cars and chase your best distance.', comps: ['Subway Surfers', 'Temple Run', 'Asphalt 9: Legends'] },
-  { slug: 'diner-rush', game: 'Diner Rush Tycoon', pitch: 'An idle-arcade restaurant tycoon for web and phones: serve a queue of hungry customers, hire staff and unlock new diners down the street.', comps: ['Overcooked!', 'Diner Dash', 'Cooking Mama: Cook Off'] },
-  { slug: 'the-final-room', game: 'The Final Room', pitch: 'A two-player online co-op horror game for Steam: one night, two friends, a road-trip stop that goes wrong. About two hours, $7.99.', comps: ['Phasmophobia', 'Lethal Company', 'Content Warning'] },
+  { slug: 'the-final-room', game: 'The Final Room', pitch: 'A two-player online co-op horror game for Steam: one night, two friends, a road-trip stop that goes wrong. About two hours, $7.99.', comps: ['Phasmophobia', 'Lethal Company', 'Content Warning'], shortlist: ['Last Podcast on the Left', 'Morbid', 'Call Her Daddy', 'The Joe Rogan Experience', 'Markiplier'] },
+  { slug: 'drive-away', game: 'Drive Away', pitch: 'A one-thumb endless highway driving game for phones: weave through oncoming traffic, unlock cars and chase your best distance.', comps: ['Subway Surfers', 'Temple Run', 'Asphalt 9: Legends'], shortlist: ['MrBeast', 'Smosh', 'The Joe Rogan Experience', 'Marshmello'] },
+  { slug: 'diner-rush', game: 'Diner Rush Tycoon', pitch: 'An idle-arcade restaurant tycoon for web and phones: serve a queue of hungry customers, hire staff and unlock new diners down the street.', comps: ['Overcooked!', 'Diner Dash', 'Cooking Mama: Cook Off'], shortlist: ['Binging with Babish', 'Gordon Ramsay', 'Hot Ones'] },
 ];
 
 const dir = new URL('../public/examples/', import.meta.url);
@@ -22,7 +22,7 @@ for (const ex of EXAMPLES.filter((e) => !only || e.slug === only)) {
     if (hit) comps.push({ id: hit.entity_id, name: hit.name, image: hit.properties?.image?.url || null });
     console.log(`${ex.slug}: ${name} -> ${hit ? `${hit.name} ${hit.entity_id}` : 'not found'}`);
   }
-  const input = { game: { name: ex.game, pitch: ex.pitch }, comps };
+  const input = { game: { name: ex.game, pitch: ex.pitch }, comps, shortlist: ex.shortlist || [] };
   const t = Date.now();
   const [result, baseline] = await Promise.all([
     runAgent(input, (m) => m.type === 'step' && console.log(`  ${m.label}`)),
