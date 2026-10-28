@@ -1,4 +1,4 @@
-export type Comp = { id: string; name: string; type?: string; year?: string | null; image?: string | null; popularity?: number }
+export type Comp = { id: string; name: string; year?: string | null; image?: string | null; popularity?: number }
 
 export type Driver = { name: string; score: number }
 export type Item = {
@@ -52,7 +52,7 @@ export type Report = {
   player_panel: Panelist[]
 }
 export type Run = {
-  input: { format?: string; game: { name: string; pitch: string }; comps: Comp[] }
+  input: { game: { name: string; pitch: string }; comps: Comp[] }
   report: Report
   baseline: Report | { error: string }
   evidence: Block[]
