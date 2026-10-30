@@ -2,7 +2,7 @@
 
 **Launch intelligence for indie games.** Your comps know who will love your game, and Lookalike shows you where to find them.
 
-Live: https://comps-qloo.vercel.app · Licence: MIT
+Live: https://lookalike-qloo.vercel.app · Licence: MIT
 
 Indie studios run Lookalike once per launch. The money is in publishers and game-marketing agencies: they screen dozens of pitches a month and would pay per seat for pitch screening and launch planning. Nobody pays for it yet. I'm the first user. I make and launch mobile and Steam games myself (StarFun Games, Sri Lanka), and the example reports are my own games: The Final Room, Drive Away and Diner Rush Tycoon.
 
@@ -12,7 +12,7 @@ Every indie game gets pitched the same way: "it's Phasmophobia meets Lethal Comp
 
 ## Try it in 30 seconds
 
-1. Open https://comps-qloo.vercel.app and click the example. It loads instantly, with no sign-up.
+1. Open https://lookalike-qloo.vercel.app and click the example. It loads instantly, with no sign-up.
 2. Read "Your launch in three decisions", then click any blue evidence chip. The drawer shows the Qloo item, its affinity, which comp drove it and the exact request.
 3. Flip **Without Qloo** at the top. That's the same model with the same brief and no Qloo data. Compare.
 4. Run your own: name your game, add two to five comps from the search box and, if you like, the podcasts or creators you were planning to pitch. A run takes one to three minutes, and you watch each Qloo call as it happens.
