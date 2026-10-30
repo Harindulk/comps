@@ -7,6 +7,35 @@ const DECISION_LABEL: Record<string, string> = { who: 'Who it is for', hook: 'Th
 const TINTS = ['#e6eefa', '#e8f5ec', '#fbeee6', '#f1ebf8'] // pale identity tints, 60+ degrees apart
 const INKS = ['#0f3a78', '#1c5130', '#7a3a12', '#4d2e73']
 
+const and = (xs: string[]) => (xs.length < 2 ? xs.join('') : `${xs.slice(0, -1).join(', ')} and ${xs.at(-1)}`)
+const VERDICT: Record<string, string> = { keep: 'Keep', test: 'Test', drop: 'Drop', unscored: 'Not scored' }
+
+// Which comps Qloo's explainability says drove the taste results; empty when the run has no explainability.
+export function coverage(run: Run) {
+  const comps = run.input.comps.map((c) => c.name)
+  const led = new Map<string, number>()
+  const drove = new Set<string>()
+  let total = 0
+  for (const b of run.evidence) {
+    if (!['list', 'segment', 'shortlist'].includes(b.kind)) continue
+    for (const i of b.items) {
+      const ds = (i.driven_by || []).filter((d) => d.score > 0)
+      if (!ds.length) continue
+      total++
+      ds.forEach((d) => drove.add(d.name))
+      led.set(ds[0].name, (led.get(ds[0].name) || 0) + 1)
+    }
+  }
+  if (!total) return ''
+  const yes = comps.filter((c) => drove.has(c)), no = comps.filter((c) => !drove.has(c))
+  if (!yes.length) return ''
+  if (!no.length) {
+    const [top, n] = [...led].sort((a, b) => b[1] - a[1])[0]
+    return `Signal came from all ${comps.length} comps; ${top} led ${n} of ${total} results.`
+  }
+  return `Signal came from ${and(yes)}; ${and(no)} added none.`
+}
+
 export function useEvidence(blocks: Block[]) {
   return useMemo(() => {
     const items = new Map<string, { block: Block; item?: Item }>()
@@ -51,6 +80,11 @@ export function ReportView({ run }: { run: Run }) {
   const lists = run.evidence.filter((b) => b.kind === 'list')
   const tags = run.evidence.find((b) => b.kind === 'tags')
   const segments = run.evidence.filter((b) => b.kind === 'segment')
+  const cover = coverage(run)
+  const places = heat.flatMap((b) => b.items.slice(0, 2)).slice(0, 6).map((i) => i.id)
+  const failed = run.meta.calls.filter((c) => c.error)
+  const okCalls = run.meta.calls.length - failed.length
+  const nums = run.meta.numbers
   const domainBlock = (d: string) => lists.find((b) => String(b.params['filter.type']).endsWith(`:${d}`))
 
   useEffect(() => {
@@ -65,7 +99,7 @@ export function ReportView({ run }: { run: Run }) {
         <div>
           <h1>{run.input.game.name}: launch plan</h1>
           <p className="sub">
-            Comps: {run.input.comps.map((c) => c.name).join(', ')} · {run.meta.calls.length} Qloo calls · built {new Date(run.meta.finished).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+            Comps: {run.input.comps.map((c) => c.name).join(', ')} · {okCalls} Qloo calls · built {new Date(run.meta.finished).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
           </p>
         </div>
         <div className="seg" role="group" aria-label="Which plan to show">
@@ -88,44 +122,39 @@ export function ReportView({ run }: { run: Run }) {
         <p className="positioning">{report.positioning}</p>
       </div>
 
-      {report.decisions?.length ? (
-        <section className="card reveal" aria-labelledby="h-decisions">
-          <h2 id="h-decisions">Your launch in three decisions</h2>
-          <div className="grid3" style={{ marginTop: 12 }}>
-            {report.decisions.map((d) => (
-              <div key={d.label} className="decision">
-                <p className="small muted">{DECISION_LABEL[d.label] || d.label}</p>
-                <p className="decision-text">{d.text}</p>
-                <Cites refs={d.evidence} lookup={lookup} onPick={setOpen} baseline={isBase} />
-              </div>
-            ))}
-          </div>
-          {!isBase && <p className="small muted" style={{ marginTop: 16 }}>What Qloo changed: {cited} of {claims.length} claims in this plan rest on Qloo evidence you can open. The same model with the same brief and no Qloo cites none.</p>}
-        </section>
-      ) : null}
-
-      <div className="grid4">
-        <div className="card stat reveal"><div className="label">Qloo calls the agent chose</div><div className="value">{isBase ? 0 : run.meta.calls.length}</div><div className="note">{kinds} kind{kinds === 1 ? '' : 's'} of Qloo query</div></div>
-        <div className="card stat reveal"><div className="label">Data points read</div><div className="value">{isBase ? 0 : points}</div><div className="note">entities, tags, places, skews</div></div>
-        <div className="card stat reveal"><div className="label">Claims with a source</div><div className="value">{isBase ? `0 of ${report.sections.flatMap((s) => s.claims).length}` : `${cited} of ${claims.length}`}</div><div className="note">click any chip to check it</div></div>
-        <div className="card stat reveal"><div className="label">Panel verdict</div><div className="value">{report.player_panel.filter((p) => p.verdict === 'buy').length} buy · {report.player_panel.filter((p) => p.verdict === 'wishlist').length} wishlist</div><div className="note">{report.player_panel.filter((p) => p.verdict === 'pass').length} pass, of {report.player_panel.length} players</div></div>
-      </div>
-
-      {!isBase && (
-        <div className="grid2">
-          <div className="card">
-            <h2>Who plays the comps</h2>
-            <p className="lede">Average skew across the comp audiences against the typical Qloo user. Right of the line means over-represented.</p>
-            {demo?.items.length ? <AgeSkew block={demo} /> : <p className="muted">Qloo has no age or gender data for these comps, so the plan doesn't claim a skew. The age panel below still re-weights taste by age band.</p>}
-            {demo?.items.length ? <button className="cite" style={{ marginTop: 14 }} onClick={() => setOpen(demo.id)}><b>{demo.id}</b><span>per-comp breakdown</span></button> : null}
-          </div>
-          <div className="card">
-            <h2>Where they live</h2>
+      <div className={isBase ? '' : 'split lead'}>
+        {report.decisions?.length ? (
+          <section className="card reveal" aria-labelledby="h-decisions">
+            <h2 id="h-decisions">Your launch in three decisions</h2>
+            <div className={isBase ? 'grid3' : 'stack'} style={{ marginTop: 12 }}>
+              {report.decisions.map((d) => (
+                <div key={d.label} className="decision">
+                  <p className="small muted">{DECISION_LABEL[d.label] || d.label}</p>
+                  <p className="decision-text">{d.text}</p>
+                  <Cites refs={d.evidence} lookup={lookup} onPick={setOpen} baseline={isBase} />
+                </div>
+              ))}
+            </div>
+            {!isBase && <p className="small muted" style={{ marginTop: 16 }}>What Qloo changed: {cited} of {claims.length} claims in this plan rest on Qloo evidence you can open. The same model with the same brief and no Qloo cites none.</p>}
+            {!isBase && cover && <p className="small muted" style={{ marginTop: 6 }}>{cover}</p>}
+          </section>
+        ) : null}
+        {!isBase && (
+          <section className="card reveal" aria-labelledby="h-where">
+            <h2 id="h-where">Where they live</h2>
             <p className="lede">Where this taste concentrates, from {heat.length} Qloo heatmap call{heat.length === 1 ? '' : 's'}. It shows taste, not a sales forecast. Click a dot for its scores.</p>
             {heat.length ? <WorldMap blocks={heat} onPick={setOpen} /> : <p className="muted">No geography data came back.</p>}
-          </div>
-        </div>
-      )}
+            {places.length ? <Cites refs={places} lookup={lookup} onPick={setOpen} /> : null}
+          </section>
+        )}
+      </div>
+
+      <div className="grid4">
+        <div className="card stat reveal"><div className="label">Qloo calls the agent chose</div><div className="value">{isBase ? 0 : okCalls}</div><div className="note">{kinds} kind{kinds === 1 ? '' : 's'} of Qloo query{failed.length ? ` · ${failed.length} failed` : ''}</div></div>
+        <div className="card stat reveal"><div className="label">Data points read</div><div className="value">{isBase ? 0 : points}</div><div className="note">entities, tags, places, skews</div></div>
+        <div className="card stat reveal"><div className="label">Claims with a source</div><div className="value">{isBase ? `0 of ${report.sections.flatMap((s) => s.claims).length}` : `${cited} of ${claims.length}`}</div><div className="note">{!isBase && nums?.checked ? `${nums.matched} of ${nums.checked} numbers match their evidence` : 'click any chip to check it'}</div></div>
+        <div className="card stat reveal"><div className="label">Panel verdict</div><div className="value">{report.player_panel.filter((p) => p.verdict === 'buy').length} buy · {report.player_panel.filter((p) => p.verdict === 'wishlist').length} wishlist</div><div className="note">{report.player_panel.filter((p) => p.verdict === 'pass').length} pass, of {report.player_panel.length} players</div></div>
+      </div>
 
       {!isBase && report.shortlist_verdicts?.length ? (
         <section className="card" aria-labelledby="h-shortlist">
@@ -133,10 +162,13 @@ export function ReportView({ run }: { run: Run }) {
           <p className="lede">The names you were going to pitch, scored by Qloo against these players with filter.results.entities. Affinity ranks them against each other; it is not a probability.</p>
           <ul className="claims">
             {report.shortlist_verdicts.map((v) => {
-              const it = v.evidence.map((r) => lookup.get(r)?.item).find((x) => x?.affinity != null)
+              const items = v.evidence.map((r) => lookup.get(r)?.item)
+              const it = items.find((x) => x?.affinity != null)
+              // Older reports gave unfound names "test"; a name Qloo could not score is never a verdict.
+              const verdict = !it && items.some((x) => x?.status && x.status !== 'scored') ? 'unscored' : v.verdict
               return (
                 <li key={v.name} className="verdict-row">
-                  <span className={`pill ${v.verdict}`}>{v.verdict === 'keep' ? 'Keep' : v.verdict === 'test' ? 'Test' : 'Drop'}</span>
+                  <span className={`pill ${verdict}`}>{VERDICT[verdict] || verdict}</span>
                   <div>
                     <p><b style={{ fontWeight: 600 }}>{v.name}</b>{it?.affinity != null && <span className="muted num"> · affinity {it.affinity.toFixed(2)}</span>}</p>
                     <p className="small muted">{v.reason}</p>
@@ -149,20 +181,30 @@ export function ReportView({ run }: { run: Run }) {
         </section>
       ) : null}
 
-      {!isBase && segments.length ? (
-        <section className="card" aria-labelledby="h-seg">
-          <h2 id="h-seg">One audience, different ages</h2>
-          <p className="lede">The same comps, re-asked with signal.demographics.age so Qloo weights one age band of the fans.</p>
-          <div className={segments.length > 1 ? 'grid2' : ''} style={{ gap: 24 }}>
-            {segments.slice(0, 2).map((b) => (
-              <div key={b.id}>
-                <p className="small muted" style={{ marginBottom: 10 }}>{b.title} · {b.id}</p>
-                <AffinityBars items={b.items} onPick={setOpen} limit={5} />
-              </div>
-            ))}
+      {!isBase && (
+        <div className={segments.length ? 'grid2' : ''}>
+          <div className="card">
+            <h2>Who plays the comps</h2>
+            <p className="lede">Average skew across the comp audiences against the typical Qloo user. Right of the line means over-represented.</p>
+            {demo?.items.length ? <AgeSkew block={demo} /> : <p className="muted">Qloo has no age or gender data for these comps, so the plan doesn't claim a skew. The age panel still re-weights taste by age band.</p>}
+            {demo?.items.length ? <button className="cite" style={{ marginTop: 14 }} onClick={() => setOpen(demo.id)}><b>{demo.id}</b><span>per-comp breakdown</span></button> : null}
           </div>
-        </section>
-      ) : null}
+          {segments.length ? (
+            <section className="card" aria-labelledby="h-seg">
+              <h2 id="h-seg">One audience, different ages</h2>
+              <p className="lede">The same comps, re-asked with signal.demographics.age so Qloo weights one age band of the fans.</p>
+              <div className="stack">
+                {segments.slice(0, 2).map((b) => (
+                  <div key={b.id}>
+                    <p className="small muted" style={{ marginBottom: 10 }}>{b.title} · {b.id}</p>
+                    <AffinityBars items={b.items} onPick={setOpen} limit={5} />
+                  </div>
+                ))}
+              </div>
+            </section>
+          ) : null}
+        </div>
+      )}
 
       {report.sections.map((s) => {
         const side = !isBase && SECTION_DOMAIN[s.kind] ? domainBlock(SECTION_DOMAIN[s.kind]) || (s.kind === 'look' ? domainBlock('movie') : undefined) : undefined
@@ -227,7 +269,13 @@ export function ReportView({ run }: { run: Run }) {
       {!isBase && (
         <section className="card" aria-labelledby="h-ledger">
           <h2 id="h-ledger">Evidence ledger</h2>
-          <p className="lede">Every Qloo call the agent made, in order. The plan above cites these by ID.</p>
+          <p className="lede">
+            Every Qloo call the agent made. The plan above cites these by ID
+            {run.meta.citations ? `: ${run.meta.citations.item} citations point at one item, ${run.meta.citations.block} at a whole result` : ''}.
+            {nums?.checked ? ` ${nums.matched} of ${nums.checked} numbers in the plan match their evidence.` : ''}
+            {failed.length ? ` ${failed.length} call${failed.length === 1 ? '' : 's'} failed and ${failed.length === 1 ? 'is' : 'are'} listed at the end.` : ''}
+          </p>
+          {nums?.unmatched?.length ? <p className="small muted" style={{ marginBottom: 12 }}>Not matched: {nums.unmatched.slice(0, 6).map((u) => `${u.value} (${u.where})`).join(', ')}</p> : null}
           <div className="table-wrap"><table className="ledger">
             <thead><tr><th>ID</th><th>What the agent asked</th><th>Endpoint</th><th className="n">Items</th><th className="n">Cited</th></tr></thead>
             <tbody>
@@ -243,6 +291,15 @@ export function ReportView({ run }: { run: Run }) {
                   </tr>
                 )
               })}
+              {failed.map((c, i) => (
+                <tr key={`f${i}`} className="failed">
+                  <td><span className="pill unscored">failed</span></td>
+                  <td>{c.tool.replace(/_/g, ' ')}{c.input ? <span className="muted"> · {Object.values(c.input).flat().join(', ').slice(0, 60)}</span> : null}<div className="small muted">{c.error!.slice(0, 100)}</div></td>
+                  <td className="small muted">-</td>
+                  <td className="n">0</td>
+                  <td className="n">-</td>
+                </tr>
+              ))}
             </tbody>
           </table></div>
         </section>

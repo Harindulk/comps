@@ -50,7 +50,7 @@ export type Panelist = { name: string; profile: string; reaction: string; verdic
 export type Report = {
   positioning: string
   decisions?: { label: string; text: string; evidence: string[] }[]
-  shortlist_verdicts?: { name: string; verdict: 'keep' | 'test' | 'drop'; reason: string; evidence: string[] }[]
+  shortlist_verdicts?: { name: string; verdict: 'keep' | 'test' | 'drop' | 'unscored'; reason: string; evidence: string[] }[]
   sections: Section[]
   store_copy: { short_description: string; tags: string[]; evidence: string[] }
   player_panel: Panelist[]
@@ -60,6 +60,15 @@ export type Run = {
   report: Report
   baseline: Report | { error: string }
   evidence: Block[]
-  meta: { model: string; calls: { tool: string; evidence?: string }[]; usage: Record<string, number>; dropped_citations: number; finished: string }
+  meta: {
+    model: string
+    calls: { tool: string; input?: Record<string, unknown>; evidence?: string; error?: string }[]
+    usage: Record<string, number>
+    dropped_citations: number
+    finished: string
+    // newer runs only
+    numbers?: { checked: number; matched: number; unmatched: { where: string; value: string | number }[] }
+    citations?: { item: number; block: number }
+  }
 }
 export type Step = { tool: string; label: string; evidence?: string; error?: string }

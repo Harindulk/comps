@@ -216,3 +216,11 @@ html { scroll-behavior: smooth; }
 .table-wrap { overflow-x: auto; }
 .cite span { min-width: 0; }
 @media (max-width: 560px) { .panel-grid { grid-template-columns: 1fr; } }
+.stack { display: grid; gap: 16px; }
+.stack > * + * { border-top: 1px solid var(--rule); padding-top: 16px; }
+.lead { grid-template-columns: 1.15fr 1fr; }
+.pill.unscored { background: var(--pill-neutral-bg); color: var(--pill-neutral-ink); }
+.verdict-row { grid-template-columns: 6.5em 1fr; }
+.verdict-row .pill { min-width: 52px; justify-content: center; }
+@media (max-width: 560px) { .verdict-row { grid-template-columns: 1fr; gap: 6px; } .verdict-row .pill { justify-self: start; } }
+@media (max-width: 860px) { .lead { grid-template-columns: 1fr; } }

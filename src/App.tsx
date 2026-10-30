@@ -78,7 +78,7 @@ function Home({ onRun, examples }: { onRun: (input: Run['input']) => void; examp
       <div className="hero">
         <div>
           <h1 className="hero-title">Your comps know who will love your game.</h1>
-          <p className="sub" style={{ fontSize: 15, maxWidth: '62ch', color: 'var(--text)', marginTop: 10 }}>Comps shows you where to find them. Give it your game, a one-line pitch and two to five comparable games. An agent asks Qloo what those players love outside games, who they skew towards and where their taste concentrates, then writes a launch plan where every claim links to the Qloo result behind it.</p>
+          <p className="sub" style={{ fontSize: 15, maxWidth: '62ch', color: 'var(--text)', marginTop: 10 }}>Lookalike shows you where to find them. Give it your game, a one-line pitch and two to five comparable games. An agent asks Qloo what those players love outside games, who they skew towards and where their taste concentrates, then writes a launch plan where every claim links to the Qloo result behind it.</p>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 18 }}>
             {hero && <a className="btn" href={`?example=${hero.slug}`}>Open {hero.game}{hero.own ? ', a real game' : ''} (instant)</a>}
             <a className="btn ghost" href="#new-plan">Analyse my game</a>
@@ -104,7 +104,7 @@ function Home({ onRun, examples }: { onRun: (input: Run['input']) => void; examp
             <label htmlFor="comp-search" className="small muted">Comparable games</label>
             <Picker value={comps} onChange={setComps} />
           </div>
-          <label className="field">Who were you going to pitch? Optional<input className="input" value={shortlist} onChange={(e) => setShortlist(e.target.value)} maxLength={480} placeholder="Podcasts, streamers or artists, separated by commas" aria-describedby="shortlist-hint" /><span id="shortlist-hint" className="hint">Up to 8 names. Qloo scores each one against your comps' players.</span></label>
+          <label className="field">Who were you going to pitch? Optional<input className="input" value={shortlist} onChange={(e) => setShortlist(e.target.value)} maxLength={480} placeholder="Podcasts, artists, TV shows or brands, separated by commas" aria-describedby="shortlist-hint" /><span id="shortlist-hint" className="hint">Up to 8 names. Qloo scores each one it can find against your comps' players; names it can't find are marked, not scored.</span></label>
           <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
             <button className="btn" disabled={!ok}>Build the plan</button>
             <span className="hint">Takes one to three minutes.</span>
@@ -232,14 +232,14 @@ export default function App() {
     if (!run) return
     const a = document.createElement('a')
     a.href = URL.createObjectURL(new Blob([JSON.stringify(run, null, 2)], { type: 'application/json' }))
-    a.download = `${run.input.game.name.toLowerCase().replace(/\W+/g, '-')}-comps.json`
+    a.download = `${run.input.game.name.toLowerCase().replace(/\W+/g, '-')}-lookalike.json`
     a.click()
   }
 
   return (
     <>
       <header className="bar">
-        <a className="brand" href="./"><img src="/mark.svg" alt="" />Comps</a>
+        <a className="brand" href="./"><img src="/mark.svg" alt="" />Lookalike</a>
         <span className="small muted hide-sm">launch intelligence for indie games, backed by Qloo</span>
         <span className="grow" />
         <nav>
@@ -254,7 +254,7 @@ export default function App() {
           : slug ? <p className="muted">Loading the report…</p>
           : <Home onRun={start} examples={examples} />}
       </main>
-      <footer className="foot">Comps by StarFun Games · taste data from the <a href="https://www.qloo.com/">Qloo</a> Insights API · plans written by Claude · <a href="https://github.com/Harindulk/comps">source</a></footer>
+      <footer className="foot">Lookalike by StarFun Games · taste data from the <a href="https://www.qloo.com/">Qloo</a> Insights API · plans written by Claude · <a href="https://github.com/Harindulk/comps">source</a></footer>
     </>
   )
 }
