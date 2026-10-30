@@ -57,7 +57,7 @@ export function WorldMap({ blocks, onPick }: { blocks: Block[]; onPick: (ref: st
           )
         })}
       </svg>
-      <div className="legend"><span><span className="key" />Area where comp fans over-index; darker is stronger</span><span>Large dots: top five</span></div>
+      <div className="legend"><span><span className="key" />Area where comp fans over-index; darker is stronger</span><span>Large dots: the five strongest cells</span></div>
     </div>
   )
 }

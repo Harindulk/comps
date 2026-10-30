@@ -81,7 +81,7 @@ export function ReportView({ run }: { run: Run }) {
   const tags = run.evidence.find((b) => b.kind === 'tags')
   const segments = run.evidence.filter((b) => b.kind === 'segment')
   const cover = coverage(run)
-  const places = heat.flatMap((b) => b.items.slice(0, 2)).slice(0, 6).map((i) => i.id)
+  const places = heat.flatMap((b) => b.items.slice(0, 2)).slice(0, 5).map((i) => i.id)
   const failed = run.meta.calls.filter((c) => c.error)
   const okCalls = run.meta.calls.length - failed.length
   const nums = run.meta.numbers
